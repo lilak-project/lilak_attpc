@@ -2,6 +2,7 @@
 #define ATMFMCONVERSIONTASK_HH
 
 #include "LKTask.hpp"
+#include "ATMFMFrameBuilder.hpp"
 
 /*
  * AT-TPC MFM conversion class
@@ -37,6 +38,9 @@ class ATMFMConversionTask : public LKTask
         int maxit = 0;
         int currit = 0;
         int percent = 0;
+        int size_buffer;
+        char *buffer;
+        int oflcnt=0;
 
         // init parameters
         int mode = 1;
