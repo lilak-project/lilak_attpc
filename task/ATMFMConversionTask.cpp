@@ -801,37 +801,37 @@ bool ATMFMConversionTask::EndOfRun()
 
 bool ATMFMConversionTask::checkport(int usPort)
 {
-  string shellCommand;
-  string pcPort;
-  //sprintf(shellCommand, "netstat -lntu | awk '{print $4}' | grep ':' | cut -d \":\" -f 2 | sort | uniq | grep %hu", usPort);
-  shellCommand = "netstat -an | grep -i " + to_string(usPort);
-  pcPort = ":"+to_string(usPort);
+    string shellCommand;
+    string pcPort;
+    //sprintf(shellCommand, "netstat -lntu | awk '{print $4}' | grep ':' | cut -d \":\" -f 2 | sort | uniq | grep %hu", usPort);
+    shellCommand = "netstat -an | grep -i " + to_string(usPort);
+    pcPort = ":"+to_string(usPort);
 
-  string output = _executeShellCommand(shellCommand);
-  lk_info << "shell-comment > output: " << shellCommand << " > " << output << endl;
+    string output = _executeShellCommand(shellCommand);
+    lk_info << "shell-comment > output: " << shellCommand << " > " << output << endl;
 
-  if(output.find(pcPort) == string::npos)
-    return false;
-  else
-    return true;
+    if(output.find(pcPort) == string::npos)
+        return false;
+    else
+        return true;
 }
 
 string ATMFMConversionTask::_executeShellCommand(string command)
 {
-  char buffer[256];
-  string result = "";
-  const char * cmd = command.c_str();
-  FILE* pipe = popen(cmd, "r");
-  if (!pipe) throw runtime_error("popen() failed!");
+    char buffer[256];
+    string result = "";
+    const char * cmd = command.c_str();
+    FILE* pipe = popen(cmd, "r");
+    if (!pipe) throw runtime_error("popen() failed!");
 
-  try {
-    while (!feof(pipe))
-      if (fgets(buffer, 128, pipe) != NULL)
-        result += buffer;
-  } catch (...) {
-      pclose(pipe);
-      throw;
-  }
-  pclose(pipe);
-  return result;
+    try {
+        while (!feof(pipe))
+            if (fgets(buffer, 128, pipe) != NULL)
+                result += buffer;
+    } catch (...) {
+        pclose(pipe);
+        throw;
+    }
+    pclose(pipe);
+    return result;
 }

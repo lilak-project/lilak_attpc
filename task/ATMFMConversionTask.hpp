@@ -18,6 +18,7 @@ class ATMFMConversionTask : public LKTask
             kReadMFM = 1,
             kReadList = 3,
             kReadExpNameNo = 11,
+
             kReadType2 = 2,
             kReadType4 = 4,
             kReadType10 = 10,
