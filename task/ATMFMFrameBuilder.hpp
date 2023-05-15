@@ -168,6 +168,12 @@ class MapChanToX6 {
 
 class ATMFMFrameBuilder : public mfm::FrameBuilder {
     public:
+        void SetChannelArray(TClonesArray *channelArray) { fChannelArray = channelArray; }
+
+    pritave:
+        TClonesArray *fChannelArray = nullptr;
+
+    public:
         ATMFMFrameBuilder(int);
         ~ATMFMFrameBuilder();
         void processFrame(mfm::Frame & frame);

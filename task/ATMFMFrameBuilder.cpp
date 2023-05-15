@@ -14,6 +14,8 @@
 const int no_cobos=3;
 using namespace std;
 
+#include "GETChannel.hpp"
+
 WaveForms::WaveForms() {
 }
 
@@ -98,7 +100,10 @@ ATMFMFrameBuilder::~ATMFMFrameBuilder() {
     delete spectra_;
 }
 
-void ATMFMFrameBuilder::processFrame(mfm::Frame &frame) {
+void ATMFMFrameBuilder::processFrame(mfm::Frame &frame)
+{
+    lk_debug << "[processFrame]" << endl;
+    //XXX
     //cout << "isBlobFrame=" << frame.header().isBlobFrame() << ", frameType=" << frame.header().frameType() << endl;
     if (frame.header().isBlobFrame())
     {
@@ -119,6 +124,7 @@ void ATMFMFrameBuilder::processFrame(mfm::Frame &frame) {
         if(goodsievt==1)
         {
             goodmmevt=1;
+            //XXX
             Event(frame);
         }
     }
@@ -229,7 +235,9 @@ void ATMFMFrameBuilder::ResetWaveforms() {
     waveforms->isRejected = 0;
 }
 
-void ATMFMFrameBuilder::ValidateEvent(mfm::Frame& frame) {
+void ATMFMFrameBuilder::ValidateEvent(mfm::Frame& frame)
+{
+    lk_debug << "[ValidateEvent]" << endl;
     if(frame.header().isLayeredFrame()) {
         unique_ptr<mfm::Frame> subFrame;
         for(int i = 0;i<frame.itemCount();i++) {
@@ -334,6 +342,7 @@ void ATMFMFrameBuilder::ValidateFrame(mfm::Frame& frame)
 
 void ATMFMFrameBuilder::Event(mfm::Frame& frame)
 {
+    //XXX
     waveforms->frameIdx = 0;
     waveforms->decayIdx = 0;
     if(frame.header().isLayeredFrame()) {
@@ -376,6 +385,7 @@ void ATMFMFrameBuilder::Event(mfm::Frame& frame)
 
 void ATMFMFrameBuilder::UnpackFrame(mfm::Frame& frame)
 {
+    //XXX
     UInt_t coboIdx = frame.headerField("coboIdx").value<UInt_t>();
     UInt_t asadIdx = frame.headerField("asadIdx").value<UInt_t>();
     Int_t prevweventIdx = weventIdx;
@@ -421,6 +431,7 @@ void ATMFMFrameBuilder::UnpackFrame(mfm::Frame& frame)
                             }
                         }
                     }
+                    //XXX
                     RootWriteEvent();
                     RootWReset();
                     prevgoodmmevt = goodmmevt;
@@ -4377,6 +4388,7 @@ void ATMFMFrameBuilder::decodeMuTanTFrame(mfm::Frame & frame)
 
 void ATMFMFrameBuilder::RootWOpenFile(string & outputFileName, string & outputTreeName)
 {
+    return;
     cout<<"FIRST EVENT?:\t"<<IsFirstevent<<endl;
 
     if(IsFirstevent){
@@ -4405,6 +4417,8 @@ void ATMFMFrameBuilder::RootWOpenFile(string & outputFileName, string & outputTr
 
 void ATMFMFrameBuilder::RootWInit()
 {
+    //XXX
+    return;
     //cout<<"Root W Init"<<endl;
     wGETMul = 0;
     wGETHit = 0;
@@ -4463,13 +4477,19 @@ void ATMFMFrameBuilder::RootWReset()
 
 void ATMFMFrameBuilder::RootWConvert()
 {
+    //XXX
     UInt_t frameIdx = waveforms->frameIdx;
     UInt_t decayIdx = waveforms->decayIdx;
     //  if(decayIdx==1) cout<<"RootWConvert L1B"<<endl;
     UInt_t coboIdx = waveforms->coboIdx;
     UInt_t asadIdx = waveforms->asadIdx;
 
+    //auto header = (GETFrameHeader *) fFrameHeader -> ConstructedAt(0);
+    //header -> SetFrameIdx(frameIdx);
+    //header -> SetDecayIdx(decayIdx);
 
+
+    int countPad = 0;
     for(UInt_t asad=0; asad<maxasad; asad++) {
         for(UInt_t aget=0; aget<4; aget++) {
             if(!waveforms->hasHit[asad*4+aget]) continue; // Skip no fired agets.
@@ -4478,6 +4498,17 @@ void ATMFMFrameBuilder::RootWConvert()
                 if(!waveforms->hasSignal[asad*4+aget][chan]) continue; // Skip no fired channels.
                 if(coboIdx>=0){
                     if(readmode==1){
+
+                        auto channel = (GETChannel *) fChannelArray -> ConstructedAt(countPad++);
+                        channel -> SetCobo(coboIdx);
+                        channel -> SetAsad(asad);
+                        channel -> SetAget(aget);
+                        channel -> SetChan(chan);
+                        channel -> SetTime(0);
+                        channel -> SetEnergy(0);
+                        channel -> SetWaveform(waveforms->waveform[asad*4+aget][chan]);
+
+                        /*
                         wGETFrameNo[wGETMul] = frameIdx;
                         wGETDecayNo[wGETMul] = decayIdx;
                         wGETTime[wGETMul] = 0;
@@ -4492,6 +4523,7 @@ void ATMFMFrameBuilder::RootWConvert()
                         }
                         //cout << weventIdx << " " << wGETMul << " " << coboIdx << " " << asad << " " << aget << " " << chan << endl;
                         //if(weventIdx==1412) cout << wGETMul << " " << wGETFrameNo[wGETMul] << " " << wGETCobo[wGETMul] << " " << wGETAsad[wGETMul] << " " << wGETAget[wGETMul] << " " << wGETChan[wGETMul] << endl;
+                        */
                         wGETMul++;
                         if(chan!=11&&chan!=22&&chan!=45&&chan!=56) wGETHit++;
                     }
@@ -4509,6 +4541,20 @@ void ATMFMFrameBuilder::RootWriteEvent(){
         if(enableupdatefast==1){
             if(framecounter%16==0){
                 fOutputTree->Write();
+//  XXX
+//  void TDirectoryFile::SaveSelf(Bool_t force=kFALSE)
+//
+//  Save Directory keys and header.
+//  If the directory has been modified (fModified set), write the keys and the directory header.
+//  This function assumes the cd is correctly set.
+//
+//  It is recommended to use this function in the following situation:
+//      Assume a process1 using a directory in Update mode
+//  - New objects or modified objects have been written to the directory.
+//  - You do not want to close the file.
+//  - You want your changes be visible from another process2 already connected to this directory in read mode.
+//  - Call this function.
+//  - In process2, use TDirectoryFile::ReadKeys to refresh the directory.
                 fOutputFile->SaveSelf();
                 if((fOutputFile->GetSize())>5000000){
                     enableupdatefast=0;
@@ -4980,7 +5026,7 @@ void ATMFMFrameBuilder::SetBucketSize(int BucketSize){
 }
 
 void ATMFMFrameBuilder::SetRootConverter(int flag){
-    enableroot = flag;
+    enableroot = flag; // this is not used anywere...
 }
 
 int ATMFMFrameBuilder::GetForceReadTree(){

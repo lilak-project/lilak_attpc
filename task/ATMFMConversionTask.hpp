@@ -19,7 +19,6 @@ class ATMFMConversionTask : public LKTask
             kReadMFM = 1,
             kReadList = 3,
             kReadExpNameNo = 11,
-
             kReadType2 = 2,
             kReadType4 = 4,
             kReadType10 = 10,
@@ -53,7 +52,7 @@ class ATMFMConversionTask : public LKTask
         int BucketSize;
         int energymethod;
         int readrw;
-        int RootConvert;
+        //int RootConvert;
         int ScalerMode;
         int d2pMode;
         int updatefast;
@@ -73,7 +72,7 @@ class ATMFMConversionTask : public LKTask
 
         // global parameters in main.cc
         static HistServer* histServer;
-        static HistServer* convServer;
+        static HistServer* fFrameBuilder; // convServer
         static int rsize_buffer=512;
         static string inrfname;
         static int maxinrfidx;
@@ -99,6 +98,10 @@ class ATMFMConversionTask : public LKTask
         int infidx=0;
 
         TString infname;
+
+        ifstream fFileStreamForEventLoop;
+
+        TClonesArray *fChannelArray = nullptr;
 
     ClassDef(ATMFMConversionTask, 1)
 };
