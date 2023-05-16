@@ -1,6 +1,27 @@
 #ifndef ATMFMCONVERSIONTASK_HH
 #define ATMFMCONVERSIONTASK_HH
 
+#include <stdio.h>      /* for printf() and fprintf() */
+#include <stdlib.h>     /* for malloc */
+#include <ncurses.h>    /* for getch() */
+#include <sys/socket.h> /* for socket(), connect(), send(), and recv() */
+#include <arpa/inet.h>  /* for sockaddr_in and inet_addr() */
+#include <string.h>     /* for memset() */
+#include <unistd.h>     /* for close() */
+#include <errno.h>
+#include "TH1.h"
+#include "TH1.h"
+#include "TSystem.h"
+#include "TSystemDirectory.h"
+#include <stdlib.h>
+#include <unistd.h>
+#include "mfm/FrameBuilder.h"
+#include "json.h"
+#include <sstream>
+#include <fstream>
+#include <TSystem.h>
+#include <thread>
+
 #include "LKTask.hpp"
 #include "ATMFMFrameBuilder.hpp"
 
@@ -14,7 +35,7 @@ class ATMFMConversionTask : public LKTask
         ATMFMConversionTask();
         virtual ~ATMFMConversionTask() {};
 
-        enum ReadType {
+        enum ReadType : int {
             kOnline = 0,
             kReadMFM = 1,
             kReadList = 3,
@@ -23,7 +44,7 @@ class ATMFMConversionTask : public LKTask
             kReadType4 = 4,
             kReadType10 = 10,
             kReadType13 = 13,
-            kReadType14 = 13,
+            kReadType14 = 14,
         };
 
         bool Init();
@@ -52,7 +73,7 @@ class ATMFMConversionTask : public LKTask
         int BucketSize;
         int energymethod;
         int readrw;
-        //int RootConvert;
+        int RootConvert;
         int ScalerMode;
         int d2pMode;
         int updatefast;
@@ -71,19 +92,19 @@ class ATMFMConversionTask : public LKTask
         TString goodEventList;
 
         // global parameters in main.cc
-        static HistServer* histServer;
-        static HistServer* fFrameBuilder; // convServer
-        static int rsize_buffer=512;
+        //static ATMFMFrameBuilder* histServer;
+        ATMFMFrameBuilder* fFrameBuilder; // convServer
+        //static int rsize_buffer;//=512;
         static string inrfname;
         static int maxinrfidx;
-        static const int maxfileno=2000;
-        static string listinrfname[maxfileno];
+        //static const int maxfileno;//=2000;
+        static string listinrfname[/*maxfileno*/2000];
         static string inrtname;
-        static string inoutrfname; // output root file name
-        static string listinoutrfname[maxfileno];
+        //static string inoutrfname; // output root file name
+        //static string listinoutrfname[/*maxfileno*/2000];
         static string maxinoutrfidx;
-        static string inoutrtname;
-        static char keyinput='r';
+        //static string inoutrtname;
+        //static char keyinput='r';
         static thread tgetkey;
 
         // parameter related to files
@@ -91,13 +112,13 @@ class ATMFMConversionTask : public LKTask
         string infname;
         string minfname;
         string outrfname;
-        string outrtname;
+        //string outrtname;
         string slistinfname;
-        string listinfname[maxfileno];
+        string listinfname[/*maxfileno*/2000];
         int maxinfidx=0;
         int infidx=0;
 
-        TString infname;
+        //TString infname;
 
         ifstream fFileStreamForEventLoop;
 

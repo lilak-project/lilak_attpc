@@ -1,7 +1,7 @@
 #include "ATMFMFrameBuilder.hpp"
 #include "GSpectra.h"
 #include "GNetServerRoot.h"
-#include "WaveletNew.h"
+#include "ATWaveletNew.hpp"
 #include "mfm/BitField.h"
 #include "mfm/Field.h"
 #include "mfm/Frame.h"
@@ -14,6 +14,7 @@
 const int no_cobos=3;
 using namespace std;
 
+#include "LKLogger.hpp"
 #include "GETChannel.hpp"
 
 WaveForms::WaveForms() {
@@ -105,8 +106,10 @@ void ATMFMFrameBuilder::processFrame(mfm::Frame &frame)
     lk_debug << "[processFrame]" << endl;
     //XXX
     //cout << "isBlobFrame=" << frame.header().isBlobFrame() << ", frameType=" << frame.header().frameType() << endl;
+    lk_debug << "frame.header().isBlobFrame() :" << frame.header().isBlobFrame() << endl;
     if (frame.header().isBlobFrame())
     {
+        lk_debug << "[frame.header().isBlobFrame()]" << endl;
         if (frame.header().frameType() == 0x7)
         {
             decodeCoBoTopologyFrame(frame);
@@ -117,6 +120,7 @@ void ATMFMFrameBuilder::processFrame(mfm::Frame &frame)
     }
     else
     {
+        lk_debug << "[frame.header().isBlobFrame()] else" << endl;
         ValidateEvent(frame);
         goodsievt=1;
         goodicevt=1;
@@ -239,11 +243,15 @@ void ATMFMFrameBuilder::ValidateEvent(mfm::Frame& frame)
 {
     lk_debug << "[ValidateEvent]" << endl;
     if(frame.header().isLayeredFrame()) {
+        lk_debug << endl;
         unique_ptr<mfm::Frame> subFrame;
+        lk_debug << endl;
         for(int i = 0;i<frame.itemCount();i++) {
             try{
                 try{
+                    lk_debug << endl;
                     subFrame = frame.frameAt(i);
+                    lk_debug << endl;
                 }catch (const std::exception& e){
                     lk_debug << "error" << endl;
                     cout << e.what() << endl;
@@ -265,6 +273,7 @@ void ATMFMFrameBuilder::ValidateEvent(mfm::Frame& frame)
             ValidateFrame(frame);
         }
     }
+        lk_debug << endl;
 }
 
 void ATMFMFrameBuilder::ValidateFrame(mfm::Frame& frame)
@@ -2272,7 +2281,7 @@ void ATMFMFrameBuilder::WaveletFilter(Int_t decayIdx, UInt_t cobo)
     widths.push_back(8);
     //widths.push_back(32); //for 512 timebucket
     widths.push_back(4); //for 256 timebucket
-    WaveletNew* wavelet;
+    ATWaveletNew* wavelet;
 
     for(UInt_t asad=0; asad<maxasad; asad++) {
         for(UInt_t aget=0; aget<4; aget++) {
@@ -2292,7 +2301,7 @@ void ATMFMFrameBuilder::WaveletFilter(Int_t decayIdx, UInt_t cobo)
                         wfinput.push_back(static_cast<double>(rwaveforms[decayIdx][cobo]->waveform[asad*4+aget][chan][i])/rwaveforms[decayIdx][cobo]->energy[asad*4+aget][chan]);
                         // wfinput[i] /= rwaveforms[decayIdx][cobo]->energy[asad*4+aget][chan];
                     }
-                    WaveletNew* wavelet = new WaveletNew(wfinput, widths, true);
+                    ATWaveletNew* wavelet = new ATWaveletNew(wfinput, widths, true);
                     wavelet->CalcCWTFast();
                     std::vector<Double_t> scale = wavelet->GetScale();
                     std::vector<Double_t> pa = wavelet->GetPa();
@@ -2311,7 +2320,7 @@ void ATMFMFrameBuilder::WaveletFilter(Int_t decayIdx, UInt_t cobo)
                         wfinput.push_back(static_cast<double>(rwaveforms[decayIdx][cobo]->waveform[asad*4+aget][chan][i])/rwaveforms[decayIdx][cobo]->energy[asad*4+aget][chan]);
                         // wfinput[i] /= rwaveforms[decayIdx][cobo]->energy[asad*4+aget][chan];
                     }
-                    WaveletNew* wavelet = new WaveletNew(wfinput, widths, true);
+                    ATWaveletNew* wavelet = new ATWaveletNew(wfinput, widths, true);
                     wavelet->CalcCWTFast();
                     std::vector<Double_t> scale = wavelet->GetScale();
                     std::vector<Double_t> pa = wavelet->GetPa();
@@ -3741,7 +3750,7 @@ void ATMFMFrameBuilder::ChangeTrackHistTitle()
     hMM_TimevsPxIDY[goodevtcounter%16]->SetTitle(Form("Single Event Time vs Pixel Y %s;Cell ID Y;Time Bucket",title0.Data()));
     hMM_TimevsPxIDYPos[goodevtcounter%16]->SetTitle(Form("Single Event Time vs Pos Y %s;Pos Y (mm,title0.Data()));Time Bucket",title0.Data()));
     hMM_EnergyvsPxIDY[goodevtcounter%16]->SetTitle(Form("Single Event Energy vs Pixel Y %s;Cell ID Y;Energy",title0.Data()));
-    hMM_SumEnergyvsPxIDY[goodevtcounter%16]->SetTitle(Form("Single Event Sum Energy vs Pixel Y %s;Cell ID Y",reventIdx,title0.Data()));
+    hMM_SumEnergyvsPxIDY[goodevtcounter%16]->SetTitle(Form("Single Event Sum Energy vs Pixel Y %s;Cell ID Y",title0.Data()));
 }
 
 void ATMFMFrameBuilder::DrawTrack()
@@ -4506,7 +4515,14 @@ void ATMFMFrameBuilder::RootWConvert()
                         channel -> SetChan(chan);
                         channel -> SetTime(0);
                         channel -> SetEnergy(0);
-                        channel -> SetWaveform(waveforms->waveform[asad*4+aget][chan]);
+
+                        // TODO @todo
+                        //memcpy(buffer, waveforms->waveform[asad*4+aget][chan][0];, sizeof(Float_t)*512); ?
+                        Int_t buffer[512];
+                        for(int i=0;i<bucketmax;i++){
+                            buffer[i] = waveforms->waveform[asad*4+aget][chan][i];
+                        }
+                        channel -> SetWaveform(buffer);
 
                         /*
                         wGETFrameNo[wGETMul] = frameIdx;

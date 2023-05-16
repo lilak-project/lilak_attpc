@@ -7,8 +7,13 @@ using namespace std;
 #include "GSpectra.h"
 #include "GNetServerRoot.h"
 
+#include "LKRun.hpp"
+
+//int ATMFMConversionTask::rsize_buffer=512;
+//const int ATMFMConversionTask::maxfileno=2000;
+
 ATMFMConversionTask::ATMFMConversionTask()
-:LKConv("ATMFMConversionTask","")
+:LKTask("ATMFMConversionTask","")
 {
 }
 
@@ -19,40 +24,50 @@ bool ATMFMConversionTask::Init()
 
     currfiles = 1;
 
-    mode             = par -> GetParInt("RunMode");
-    readtype         = par -> GetParInt("ReadType");
-    numfiles         = par -> GetParInt("NumberofFiles");
-    watcherPort      = par -> GetParInt("watcherPort");
-    converterPort    = par -> GetParInt("ConverterPort");
-    CoBoServerPort   = par -> GetParInt("CoBoServerPort");
-    MutantServerPort = par -> GetParInt("MutantServerPort");
-    BucketSize       = par -> GetParInt("BucketSize");
-    energymethod     = par -> GetParInt("EnergyFindingMethod");
-    readrw           = par -> GetParInt("ReadResponseWaveformFlag");
-    //RootConvert      = par -> GetParInt("RootConvertEnable");
-    ScalerMode       = par -> GetParInt("ScalerMode");
-    d2pMode          = par -> GetParInt("2pMode");
-    updatefast       = par -> GetParInt("UpdateFast");
-    DrawWaveform     = par -> GetParInt("DrawWaveformEnable");
-    cleantrack       = par -> GetParInt("CleanTrackEnable");
-    DrawTrack        = par -> GetParInt("DrawTrackEnable");
-    SkipEvents       = par -> GetParInt("SkipEvents");
-    firstEventNo     = par -> GetParInt("firstEventNo");
-    IgnoreMM         = par -> GetParBool("IgnoreMicromegas");
-    mfmfilename      = par -> GetParString("MFMFileName");
-    watcherIP        = par -> GetParString("watcherIP");
-    mapChanToMM      = par -> GetParString("ChanToMMMapFileName");
-    mapChanToSi      = par -> GetParString("ChanToSiMapFileName");
-    rwfilename       = par -> GetParString("ResponseWaveformFileName");
-    supdatefast      = par -> GetParString("UpdateFast");
+    int irt = fPar -> GetParInt("ReadType");
+    if (irt==0 ) readtype = kOnline;
+    if (irt==1 ) readtype = kReadMFM;
+    if (irt==2 ) readtype = kReadType2;
+    if (irt==3 ) readtype = kReadList;
+    if (irt==4 ) readtype = kReadType4;
+    if (irt==10) readtype = kReadType10;
+    if (irt==11) readtype = kReadExpNameNo;
+    if (irt==13) readtype = kReadType13;
+    if (irt==14) readtype = kReadType14;
 
-    outrtname = "TEvent";
-    inoutrtname = "TEvent";
+    mode             = fPar -> GetParInt("RunMode");
+    numfiles         = fPar -> GetParInt("NumberofFiles");
+    watcherPort      = fPar -> GetParInt("watcherPort");
+    converterPort    = fPar -> GetParInt("ConverterPort");
+    CoBoServerPort   = fPar -> GetParInt("CoBoServerPort");
+    MutantServerPort = fPar -> GetParInt("MutantServerPort");
+    BucketSize       = fPar -> GetParInt("BucketSize");
+    energymethod     = fPar -> GetParInt("EnergyFindingMethod");
+    readrw           = fPar -> GetParInt("ReadResponseWaveformFlag");
+    RootConvert      = fPar -> GetParInt("RootConvertEnable");
+    ScalerMode       = fPar -> GetParInt("ScalerMode");
+    d2pMode          = fPar -> GetParInt("2pMode");
+    updatefast       = fPar -> GetParInt("UpdateFast");
+    DrawWaveform     = fPar -> GetParInt("DrawWaveformEnable");
+    cleantrack       = fPar -> GetParInt("CleanTrackEnable");
+    DrawTrack        = fPar -> GetParInt("DrawTrackEnable");
+    if (fPar -> CheckPar("SkipEvents"))     SkipEvents       = fPar -> GetParInt("SkipEvents");
+    if (fPar -> CheckPar("firstEventNo"))  firstEventNo     = fPar -> GetParInt("firstEventNo");
+    IgnoreMM         = fPar -> GetParBool("IgnoreMicromegas");
+    mfmfilename      = fPar -> GetParString("MFMFileName");
+    //watcherIP        = fPar -> GetParString("watcherIP");
+    mapChanToMM      = fPar -> GetParString("ChanToMMMapFileName");
+    mapChanToSi      = fPar -> GetParString("ChanToSiMapFileName");
+    rwfilename       = fPar -> GetParString("ResponseWaveformFileName");
+    supdatefast      = fPar -> GetParString("UpdateFast");
+
+    //outrtname = "TEvent";
+    //inoutrtname = "TEvent";
 
     if (SkipEvents==1)
         ;
     else if (SkipEvents==2)
-        goodEventList = config["firstEventNo"].asString();
+        goodEventList = fPar -> GetParString("firstEventNo");
     else 
         firstEventNo = 0;
 
@@ -87,21 +102,23 @@ bool ATMFMConversionTask::Init()
      * - 3 : offline with list file
      * - 11: offline with exptname and run number
     */
+    /*
     if(ScalerMode==0){
-        outrfname = "/home/cens-alpha-00/MFMHistServer/online2.root";
-        inoutrfname = "/home/cens-alpha-00/MFMHistServer/online2_et.root";
+        outrfname = "/home/cens-alpha-00/ejungwoo/data/online2.root";
+        inoutrfname = "/home/cens-alpha-00/ejungwoo/data/online2_et.root";
         //outrfname = "/data/grgroup/gr01/MFMHistServer/online/online.root";
         //inoutrfname = "/data/grgroup/gr01/MFMHistServer/online/online_et.root";
     }else{
-        outrfname = "/home/cens-alpha-00/MFMHistServer/scaler.root";
-        inoutrfname = "/home/cens-alpha-00/MFMHistServer/scaler_et.root";
+        outrfname = "/home/cens-alpha-00/ejungwoo/data/scaler.root";
+        inoutrfname = "/home/cens-alpha-00/ejungwoo/data/scaler_et.root";
         //outrfname = "/data/grgroup/gr01/MFMHistServer/online/scaler.root";
         //inoutrfname = "/data/grgroup/gr01/MFMHistServer/online/scaler_et.root";
     }
+    */
 
     lk_info <<"MODE: "<<mode<<"\t\tREAD TYPE:\t"<<readtype<<endl;
 
-    lk_info <<"root file name="<< outrfname << ", root tree name=" << outrtname << endl;
+    //lk_info <<"root file name="<< outrfname << ", root tree name=" << outrtname << endl;
 
     //while(keyinput=='r')
     {
@@ -183,15 +200,15 @@ bool ATMFMConversionTask::Init()
             if(mode==1){
                 if(readtype==kReadType14){
                     delete fFrameBuilder;
-                    return 0;
+                    return true;
                 }else if(RootConvert==1 && (currit==maxit)){
                     if(numfiles==1 || currfiles>numfiles){
                         delete fFrameBuilder;
-                        return 0;
+                        return true;
                     }
                 }else if(readtype==kReadType4 && (currit==maxit)){
                     delete fFrameBuilder;
-                    return 0;
+                    return true;
                 }
             }
             */
@@ -233,7 +250,7 @@ void ATMFMConversionTask::Exec(Option_t*)
         }catch (const std::exception& e){
             lk_error << "error occured from LAST fFrameBuilder->addDataChunk(buffer,buffer+matrixSize)" << endl;
             lx_cout << e.what() << endl;
-            return 0;
+            return;
         }
     }
 }

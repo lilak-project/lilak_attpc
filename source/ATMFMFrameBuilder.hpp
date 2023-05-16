@@ -22,6 +22,8 @@
 #include <TError.h>
 #include <fstream>
 
+#include "TClonesArray.h"
+
 using namespace std;
 class GSpectra;
 class GNetServerRoot;
@@ -170,7 +172,7 @@ class ATMFMFrameBuilder : public mfm::FrameBuilder {
     public:
         void SetChannelArray(TClonesArray *channelArray) { fChannelArray = channelArray; }
 
-    pritave:
+    private:
         TClonesArray *fChannelArray = nullptr;
 
     public:
@@ -430,7 +432,8 @@ class ATMFMFrameBuilder : public mfm::FrameBuilder {
         UInt_t bmpos; //BM Position
         UInt_t bmsum1; //BM Energy by position ratio
         UInt_t bmsum2; //BM Energy by sig_sum
-        UInt_t eventID; //weventIdx;
+        //UInt_t eventID; //weventIdx;
+        UInt_t weventIdx; //weventIdx;
         UInt_t weventTime;
         UInt_t goodsievt;
         UInt_t goodmmevt;
