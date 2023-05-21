@@ -22,8 +22,8 @@
 #include <TSystem.h>
 #include <thread>
 
-#include "LKTask.hpp"
-#include "ATMFMFrameBuilder.hpp"
+#include "LKTask.h"
+#include "ATMFMFrameBuilder.h"
 
 /*
  * AT-TPC MFM conversion class

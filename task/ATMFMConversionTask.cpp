@@ -1,13 +1,13 @@
 #include <iostream>
 using namespace std;
 
-#include "ATMFMConversionTask.hpp"
-#include "GETChannel.hpp"
+#include "ATMFMConversionTask.h"
+#include "GETChannel.h"
 
 #include "GSpectra.h"
 #include "GNetServerRoot.h"
 
-#include "LKRun.hpp"
+#include "LKRun.h"
 
 //int ATMFMConversionTask::rsize_buffer=512;
 //const int ATMFMConversionTask::maxfileno=2000;

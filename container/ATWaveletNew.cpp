@@ -1,4 +1,4 @@
-#include "ATWaveletNew.hpp"
+#include "ATWaveletNew.h"
 
 ATWaveletNew::ATWaveletNew(const std::vector<double> voltArray, int numWaveletsInput) : startNumber(32), stopNumber(2048) {
     volt = voltArray;

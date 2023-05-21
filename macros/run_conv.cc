@@ -1,6 +1,6 @@
-#include "LKLogger.hpp"
-#include "LKRun.hpp"
-#include "ATMFMConversionTask.hpp"
+#include "LKLogger.h"
+#include "LKRun.h"
+#include "ATMFMConversionTask.h"
 
 int main()
 {

@@ -1,7 +1,7 @@
-#include "ATMFMFrameBuilder.hpp"
+#include "ATMFMFrameBuilder.h"
 #include "GSpectra.h"
 #include "GNetServerRoot.h"
-#include "ATWaveletNew.hpp"
+#include "ATWaveletNew.h"
 #include "mfm/BitField.h"
 #include "mfm/Field.h"
 #include "mfm/Frame.h"
@@ -10,12 +10,12 @@
 #include "mfm/Item.h"
 #include <sstream>
 #include <cstdio>
-#include <boost/utility/binary.hpp>
+#include <boost/utility/binary.h>
 const int no_cobos=3;
 using namespace std;
 
-#include "LKLogger.hpp"
-#include "GETChannel.hpp"
+#include "LKLogger.h"
+#include "GETChannel.h"
 
 WaveForms::WaveForms() {
 }
