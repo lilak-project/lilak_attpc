@@ -9,7 +9,7 @@ int main()
     auto run = LKRun::GetRun();
     run -> SetDataPath("data");
     run -> SetTag("conv");
-    run -> AddPar("config_good.json");
+    run -> AddPar("config_good.mac");
 
     run -> Add(new ATMFMConversionTask());
 
