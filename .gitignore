@@ -1,0 +1,16 @@
+CMakeLists.txt
+dummy
+__pycache__
+.DS_Store
+*.root
+*.png
+*.eps
+*.jpg
+*.jpeg
+*.temp
+*.exe
+*.log
+*.csv
+*.33
+data/
+figures/

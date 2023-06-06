@@ -10,7 +10,7 @@
 #include "mfm/Item.h"
 #include <sstream>
 #include <cstdio>
-#include <boost/utility/binary.h>
+//#include <boost/utility/binary.h>
 const int no_cobos=3;
 using namespace std;
 
@@ -257,6 +257,7 @@ void ATMFMFrameBuilder::ValidateEvent(mfm::Frame& frame)
                     cout << e.what() << endl;
                     return;
                 }
+                lk_debug << endl;
                 if((*subFrame.get()).itemCount()>0){ //Make sure we have data
                     ValidateFrame(*subFrame.get());
                 }else{

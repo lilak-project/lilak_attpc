@@ -12,6 +12,8 @@ using namespace std;
 //int ATMFMConversionTask::rsize_buffer=512;
 //const int ATMFMConversionTask::maxfileno=2000;
 
+//ClassImp(ATMFMConversionTask)
+
 ATMFMConversionTask::ATMFMConversionTask()
 :LKTask("ATMFMConversionTask","")
 {
@@ -81,16 +83,16 @@ bool ATMFMConversionTask::Init()
     */
     if(mode==1)
     {
+        lk_info << "Creating fFrameBuilder" << endl;
         fFrameBuilder = new ATMFMFrameBuilder(converterPort);
-        fFrameBuilder->SetBucketSize(BucketSize);
-        fFrameBuilder->Init(mode,d2pMode);
-        fFrameBuilder->SetReadMode(mode);
-        fFrameBuilder->SetReadType(readtype);
-        fFrameBuilder->SetScaler(ScalerMode);
-        fFrameBuilder->Set2pMode(d2pMode);
-        fFrameBuilder->SetUpdateSpeed(updatefast);
-
-        fFrameBuilder->SetChannelArray(fChannelArray);
+        fFrameBuilder -> SetBucketSize(BucketSize);
+        fFrameBuilder -> Init(mode,d2pMode);
+        fFrameBuilder -> SetReadMode(mode);
+        fFrameBuilder -> SetReadType(readtype);
+        fFrameBuilder -> SetScaler(ScalerMode);
+        fFrameBuilder -> Set2pMode(d2pMode);
+        fFrameBuilder -> SetUpdateSpeed(updatefast);
+        fFrameBuilder -> SetChannelArray(fChannelArray);
     }
     else
         return false;
@@ -141,6 +143,7 @@ bool ATMFMConversionTask::Init()
                     if(readtype==kReadType2) readtype=kOnline;
                 }
             }
+
             //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             lk_info << "MFM file name: " << infname << endl;
             ifstream fileMFM(infname.c_str(),std::ios::binary | std::ios::in);
@@ -151,11 +154,16 @@ bool ATMFMConversionTask::Init()
             size_buffer = 512; // XXX
             buffer = (char *) malloc (size_buffer);
             int countEvents = 0;
-            while(!fileMFM.eof()) {
-                fileMFM.read(buffer,size_buffer);
-                countEvents++;
-            }
-            countEvents;
+            if (0)
+                while(!fileMFM.eof()) {
+                    fileMFM.read(buffer,size_buffer);
+                    countEvents++;
+                }
+            else
+                countEvents = 10;
+            numEvents = countEvents;
+            lk_info << "Number of events: " << numEvents << endl;
+            percent = countEvents/10;
             fRun -> SetNumEvents(countEvents);
             fileMFM.close();
             //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -188,32 +196,15 @@ bool ATMFMConversionTask::Init()
             }
             */
 
-
-            size_t const matrixSize = 4*68*512*sizeof(double);
-            //size_t const matrixSize = 512;
-            char *buffer = (char *) malloc (matrixSize);
-            lk_info<<"READ BUFFERS, matrixSize was "<< 4*68*512*sizeof(double) <<endl;
             fFileStreamForEventLoop.open(infname.c_str(),std::ios::binary | std::ios::in);
 
-            //fFileStreamForEventLoop.close();
-            /*
-            if(mode==1){
-                if(readtype==kReadType14){
-                    delete fFrameBuilder;
-                    return true;
-                }else if(RootConvert==1 && (currit==maxit)){
-                    if(numfiles==1 || currfiles>numfiles){
-                        delete fFrameBuilder;
-                        return true;
-                    }
-                }else if(readtype==kReadType4 && (currit==maxit)){
-                    delete fFrameBuilder;
-                    return true;
-                }
+            if (!fFileStreamForEventLoop.is_open()) {
+                lk_warning << "input file " << infname.c_str() << " is not opened!" << endl;
+                fRun -> SignalEndOfRun();
+                return false;
             }
-            */
+
         }
-        // XXX
     }
 
     return true;
@@ -221,6 +212,12 @@ bool ATMFMConversionTask::Init()
 
 void ATMFMConversionTask::Exec(Option_t*)
 {
+    if (!fFileStreamForEventLoop.is_open()) {
+        lk_warning << "input file is not opened!" << endl;
+        fRun -> SignalEndOfRun();
+        return;
+    }
+
     if (fFileStreamForEventLoop.eof()) {
         lk_warning << "end of MFM file!" << endl;
         fRun -> SignalEndOfRun();
@@ -229,16 +226,16 @@ void ATMFMConversionTask::Exec(Option_t*)
 
     size_t const matrixSize = 4*68*512*sizeof(double);
 
-    int filebuffer=0;
-    fFileStreamForEventLoop.seekg(filebuffer, std::ios_base::cur);
+    int fileBuffer=0;
+    fFileStreamForEventLoop.seekg(fileBuffer, std::ios_base::cur);
     fFileStreamForEventLoop.read(buffer,matrixSize);
-    filebuffer += matrixSize;
+    fileBuffer += matrixSize;
 
     if(!fFileStreamForEventLoop.eof()) {
         try {
             fFrameBuilder->addDataChunk(buffer,buffer+matrixSize);
         }catch (const std::exception& e){
-            lk_error << "error occured from fFrameBuilder->addDataChunk(buffer,buffer+matrixSize)" << endl;
+            lk_debug << "error occured from fFrameBuilder->addDataChunk(buffer,buffer+matrixSize)" << endl;
             lx_cout << e.what() << endl;
             fRun -> SignalEndOfRun();
             return;
@@ -248,7 +245,7 @@ void ATMFMConversionTask::Exec(Option_t*)
         try {
             fFrameBuilder->addDataChunk(buffer,buffer+fFileStreamForEventLoop.gcount());
         }catch (const std::exception& e){
-            lk_error << "error occured from LAST fFrameBuilder->addDataChunk(buffer,buffer+matrixSize)" << endl;
+            lk_debug << "error occured from LAST fFrameBuilder->addDataChunk(buffer,buffer+matrixSize)" << endl;
             lx_cout << e.what() << endl;
             return;
         }

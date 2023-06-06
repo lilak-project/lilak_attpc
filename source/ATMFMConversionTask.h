@@ -16,7 +16,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "mfm/FrameBuilder.h"
-#include "json.h"
 #include <sstream>
 #include <fstream>
 #include <TSystem.h>
@@ -55,8 +54,8 @@ class ATMFMConversionTask : public LKTask
         bool   checkport(int usPort);
         string _executeShellCommand(string command);
 
-        int maxit = 0;
-        int currit = 0;
+        int numEvents = 0;
+        int eventID = 0;
         int percent = 0;
         int size_buffer;
         char *buffer;
@@ -124,7 +123,7 @@ class ATMFMConversionTask : public LKTask
 
         TClonesArray *fChannelArray = nullptr;
 
-    ClassDef(ATMFMConversionTask, 1)
+    //ClassDef(ATMFMConversionTask, 1)
 };
 
 #endif
