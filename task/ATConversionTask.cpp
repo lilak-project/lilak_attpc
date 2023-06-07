@@ -1,15 +1,16 @@
-#include "ATTrackFinder.h"
+#include "ATConversionTask.h"
 
-ClassImp(ATTrackFinder)
+ClassImp(ATConversionTask)
 
-ATTrackFinder::ATTrackFinder()
-:LKTask("ATTrackFinder","")
+ATConversionTask::ATConversionTask()
+:LKTask("ATConversionTask","")
 {
 }
 
-bool ATTrackFinder::Init() 
+bool ATConversionTask::Init() 
 {
-    fInputFile = new TFile(inrfname.c_str(), "read");
+    fInputFileName = fPar -> GetParFile("ATConversionTask/inputFile");
+    fInputFile = new TFile(fInputFileName, "read");
     fInputTree = (TTree*) fInputFile -> Get("TEvent");
 
     //SetBranch()
@@ -42,8 +43,9 @@ bool ATTrackFinder::Init()
         // MMS: 0 = Left Strip | 1 = Right Strip | 2 = Left Chain | 3 = Right Chain | 4 = Low Center | 5 = High Center
         line = 0;
         ifstream mapmm;
-        mapmm.open("./txtfiles/mapchantomm.txt");
-        if(mapmm.fail()==true) cout << "error: mapchantomm" << endl;
+        const char *mapmmFileName = fPar -> GetParFile("ATConversionTask/mapmm");
+        mapmm.open(mapmmFileName);
+        if(mapmm.fail()==true) lk_error << "error: mapchantomm" << endl;
         while(mapmm.good())
         {
             mapmm >> mmasad[line] >> mmaget[line] >> mmdchan[line] >> mmx[line] >> mmy[line];
@@ -51,7 +53,7 @@ bool ATTrackFinder::Init()
             line++;
             if(line==mmnum) break;
         }
-        if(line<mmnum) cout << Form("mmnum check: %d/%d",line-1,mmnum) << endl;
+        if(line<mmnum) lk_info << Form("mmnum check: %d/%d",line-1,mmnum) << endl;
         mapmm.close();
         mapmm.clear();
 
@@ -98,8 +100,9 @@ bool ATTrackFinder::Init()
         // Forward Si
         line = 0;
         ifstream mapsi;
-        mapsi.open("./txtfiles/mapchantosi_CRIB.txt");
-        if(mapsi.fail()==true) cout << "error: mapchantosi" << endl;
+        const char *mapsiFileName = fPar -> GetParFile("ATConversionTask/mapsi");
+        mapsi.open(mapsiFileName);
+        if(mapsi.fail()==true) lk_error << "error: mapchantosi" << endl;
         while(mapsi.good())
         {
             mapsi >> siasad[line] >> siaget[line] >> sichan[line] >> six[line] >> siy[line] >> sipos[line];
@@ -117,7 +120,7 @@ bool ATTrackFinder::Init()
             line++;
             if(line==sinum) break;
         }
-        if(line<sinum) cout << Form("sinum check: %d/%d",line-1,sinum) << endl;
+        if(line<sinum) lk_info << Form("sinum check: %d/%d",line-1,sinum) << endl;
         mapsi.close();
         mapsi.clear();
 
@@ -172,8 +175,9 @@ bool ATTrackFinder::Init()
         // CENS X6
         line = 0;
         ifstream mapX6;
-        mapX6.open("./txtfiles/mapchantoX6_CRIB.txt");
-        if(mapX6.fail()==true) cout << "error: mapchantoX6" << endl;
+        const char *mapX6FileName = fPar -> GetParFile("ATConversionTask/mapX6");
+        mapX6.open(mapX6FileName);
+        if(mapX6.fail()==true) lk_error << "error: mapchantoX6" << endl;
         while(mapX6.good())
         {
             mapX6 >> X6asad[line] >> X6aget[line] >> X6chan[line] >> X6flag[line] >> X6detnum[line] >> X6pos[line];
@@ -192,15 +196,16 @@ bool ATTrackFinder::Init()
             line++;
             if(line==X6num) break;
         }
-        if(line<X6num) cout << Form("X6num check: %d/%d",line-1,X6num) << endl;
+        if(line<X6num) lk_info << Form("X6num check: %d/%d",line-1,X6num) << endl;
         mapX6.close();
         mapX6.clear();
 
         // CENS CsI
         line = 0;
         ifstream mapCsI;
-        mapCsI.open("./txtfiles/mapchantoCsI_CRIB.txt");
-        if(mapCsI.fail()==true) cout << "error: mapchantoCsI" << endl;
+        const char *mapCsIFileName = fPar -> GetParFile("ATConversionTask/mapCsI");
+        mapCsI.open(mapCsIFileName);
+        if(mapCsI.fail()==true) lk_error << "error: mapchantoCsI" << endl;
         while(mapCsI.good())
         {
             mapCsI >> CsIasad[line] >> CsIaget[line] >> CsIchan[line] >> CsICTnum[line] >> CsIpinflag[line] >> CsItoX6det[line];
@@ -212,52 +217,18 @@ bool ATTrackFinder::Init()
             line++;
             if(line==CsInum) break;
         }
-        if(line<CsInum) cout << Form("CsInum check: %d/%d",line-1,CsInum) << endl;
+        if(line<CsInum) lk_info << Form("CsInum check: %d/%d",line-1,CsInum) << endl;
         mapCsI.close();
         mapCsI.clear();
-
-        //for(Int_t i=0; i<3; i++) for(Int_t j=0; j<4; j++) for(Int_t k=0; k<4; k++) for(Int_t l=0; l<68; l++) cout << Form("%d_%d_%d_%d: type %d, DetLoc %d",i,j,k,l,type[i][j][k][l],DetLoc[i][j][k][l]) << endl;
-
-        //// Calibration
-        //Int_t tchan;
-        //Double_t tpar0, tpar1;
-        //// front Si Junction
-        //ifstream* fpar = new ifstream("./txtfiles/run0909_calpar.txt");
-        //if(fpar->is_open())
-        //{
-        //    for(Int_t i=0; i<sinum; i++)
-        //    {
-        //        *fpar >> tpar0 >> tpar1 >> tchan;
-        //        //cout << tpar0 << " " << tpar1 << " " << tchan << endl;
-        //        siJpar0[tchan] = tpar0;
-        //        siJpar1[tchan] = tpar1;
-        //        //cout << Form("chan%d | 0: %f, 1: %f", tchan, siJpar0[tchan], siJpar1[tchan]) << endl;
-        //    }
-        //}
-
-        //// X6 Ohmic
-        //ifstream* cal = new ifstream("./txtfiles/X6_back.cal");
-        //if(cal->is_open())
-        //{
-        //    for(Int_t i=0; i<64; i++)
-        //    {
-        //        *cal >> tpar0 >> tpar1;
-        //        X6Opar0[(int)i/4][i%4] = tpar0;
-        //        X6Opar1[(int)i/4][i%4] = tpar1;
-        //        //cout << (int)i/4 << " " << i%4 << " " << par0 << " " << par1 << endl;
-        //    }
-        //}
-        //    for(Int_t i=0; i<2; i++) for(Int_t j=0; j<4; j++) for(Int_t k=0; k<4; k++) for(Int_t l=0; l<68; l++)
-        //	cout << Form("%d_%d_%d_%d: %d",i, j, k, l, type[i][j][k][l]) << endl;
     }
 
 }
 
-void ATTrackFinder::Exec(Option_t*)
+void ATConversionTask::Exec(Option_t*)
 {
 }
 
-bool ATTrackFinder::EndOfRun()
+bool ATConversionTask::EndOfRun()
 {
     TH2D* timing_dt_xy = new TH2D("timing_dt_xy","Y(vertical) vs Chain location;mmpx;dT(Beam-Chain)",134,0,134,300,-150,150);
     TH2D* timing_dt_zy = new TH2D("timing_dt_zy","Y(vertical) vs Strip location;mmpy;dT(Beam-Strip)",128,0,128,300,-150,150);
@@ -282,19 +253,19 @@ bool ATTrackFinder::EndOfRun()
     char side[16];
     if(SiBLR[evt]==0) 
     {
-	strcpy(side, "Left");
-	whichtype[0] = 0;
-	whichtype[1] = 2;
+        strcpy(side, "Left");
+        whichtype[0] = 0;
+        whichtype[1] = 2;
     }
     else if(SiBLR[evt]==1) 
     {
-	strcpy(side, "Right");
-	whichtype[0] = 1;
-	whichtype[1] = 3;
+        strcpy(side, "Right");
+        whichtype[0] = 1;
+        whichtype[1] = 3;
     }
     else if(SiBLR[evt]==9) 
     {
-	return;
+        return;
     }
     char updown[10];
     Int_t fchan;
@@ -310,67 +281,36 @@ bool ATTrackFinder::EndOfRun()
 
     for(Int_t hit=0; hit<mmMul; hit++)
     {
-	chan = mmChan[hit];
-	dchan = 0;
-	if(           chan<11) dchan = chan;
-	else if(chan>11 && chan<22) dchan = chan - 1;
-	else if(chan>22 && chan<45) dchan = chan - 2;
-	else if(chan>45 && chan<56) dchan = chan - 3;
-	else if(chan>56           ) dchan = chan - 4;
+        chan = mmChan[hit];
+        dchan = 0;
+             if(           chan<11) dchan = chan;
+        else if(chan>11 && chan<22) dchan = chan - 1;
+        else if(chan>22 && chan<45) dchan = chan - 2;
+        else if(chan>45 && chan<56) dchan = chan - 3;
+        else if(chan>56           ) dchan = chan - 4;
 
-	if(mmCobo[hit]==0 && !(mmChan[hit]==11 || mmChan[hit]==22 || mmChan[hit]==45 || mmChan[hit]==56))
-	{
-	    if(type[0][mmAsad[hit]][mmAget[hit]][dchan]==4) 
-	    {
-		if(mmpy[mmAsad[hit]][mmAget[hit]][dchan]<64)
-		{
-		    if(mmpx[mmAsad[hit]][mmAget[hit]][dchan]==64)
-		    {
-			for(Int_t buck=Bi; buck<Bf; buck++) LCWaveFormbyPixel[0] -> Fill(buck,mmWaveformY[hit][buck]);
-		    }
-		    else if(mmpx[mmAsad[hit]][mmAget[hit]][dchan]==65)
-		    {
-			for(Int_t buck=Bi; buck<Bf; buck++) LCWaveFormbyPixel[1] -> Fill(buck,mmWaveformY[hit][buck]);
-		    }
-		    else if(mmpx[mmAsad[hit]][mmAget[hit]][dchan]==66)
-		    {
-			for(Int_t buck=Bi; buck<Bf; buck++) LCWaveFormbyPixel[2] -> Fill(buck,mmWaveformY[hit][buck]);
-		    }
-		    else if(mmpx[mmAsad[hit]][mmAget[hit]][dchan]==67)
-		    {
-			for(Int_t buck=Bi; buck<Bf; buck++) LCWaveFormbyPixel[3] -> Fill(buck,mmWaveformY[hit][buck]);
-		    }
-		    else if(mmpx[mmAsad[hit]][mmAget[hit]][dchan]==68)
-		    {
-			for(Int_t buck=Bi; buck<Bf; buck++) LCWaveFormbyPixel[4] -> Fill(buck,mmWaveformY[hit][buck]);
-		    }
-		    else if(mmpx[mmAsad[hit]][mmAget[hit]][dchan]==69)
-		    {
-			for(Int_t buck=Bi; buck<Bf; buck++) LCWaveFormbyPixel[5] -> Fill(buck,mmWaveformY[hit][buck]);
-		    }
-		}
-	    }
-	}
-		    strcpy(updown, "Down"); //just for temp.
-	//if(mmCobo[hit]==1 && !(mmChan[hit]==11 || mmChan[hit]==22 || mmChan[hit]==45 || mmChan[hit]==56))
-	//{
-	//    if(type[1][mmAsad[hit]][mmAget[hit]][mmChan[hit]]==6) 
-	//    {
-	//	if(mmAsad[hit]==0 && mmAget[hit]==0) fchan = mmChan[hit];
-	//	if(mmAsad[hit]==0 && mmAget[hit]==1)
-	//	{
-	//	    if((mmChan[hit]%2)==0) strcpy(updown, "Up");
-	//	    else if((mmChan[hit]%2)==1) strcpy(updown, "Down");
-	//	}
-	//    }
-	//}
+        if(mmCobo[hit]==0 && !(mmChan[hit]==11 || mmChan[hit]==22 || mmChan[hit]==45 || mmChan[hit]==56))
+        {
+            if(type[0][mmAsad[hit]][mmAget[hit]][dchan]==4) 
+            {
+                if(mmpy[mmAsad[hit]][mmAget[hit]][dchan]<64)
+                {
+                         if(mmpx[mmAsad[hit]][mmAget[hit]][dchan]==64) for(Int_t buck=Bi; buck<Bf; buck++) LCWaveFormbyPixel[0] -> Fill(buck,mmWaveformY[hit][buck]);
+                    else if(mmpx[mmAsad[hit]][mmAget[hit]][dchan]==65) for(Int_t buck=Bi; buck<Bf; buck++) LCWaveFormbyPixel[1] -> Fill(buck,mmWaveformY[hit][buck]);
+                    else if(mmpx[mmAsad[hit]][mmAget[hit]][dchan]==66) for(Int_t buck=Bi; buck<Bf; buck++) LCWaveFormbyPixel[2] -> Fill(buck,mmWaveformY[hit][buck]);
+                    else if(mmpx[mmAsad[hit]][mmAget[hit]][dchan]==67) for(Int_t buck=Bi; buck<Bf; buck++) LCWaveFormbyPixel[3] -> Fill(buck,mmWaveformY[hit][buck]);
+                    else if(mmpx[mmAsad[hit]][mmAget[hit]][dchan]==68) for(Int_t buck=Bi; buck<Bf; buck++) LCWaveFormbyPixel[4] -> Fill(buck,mmWaveformY[hit][buck]);
+                    else if(mmpx[mmAsad[hit]][mmAget[hit]][dchan]==69) for(Int_t buck=Bi; buck<Bf; buck++) LCWaveFormbyPixel[5] -> Fill(buck,mmWaveformY[hit][buck]);
+                }
+            }
+        }
+        strcpy(updown, "Down");
     }
 
     // ================================================== Beam candidates timing
-    for(Int_t i=0; i<6; i++)
-    {
-	Timing[i] = Bi + LCWaveFormbyPixel[i] -> GetMaximumBin();
-	if(Timing[i]==Bi+1) Timing[i]=0;
+    for(Int_t i=0; i<6; i++) {
+        Timing[i] = Bi + LCWaveFormbyPixel[i] -> GetMaximumBin();
+        if(Timing[i]==Bi+1) Timing[i]=0;
     }
 
     // ================================================== Find timing; using 6 chains, 60 timebin window
@@ -384,72 +324,72 @@ bool ATTrackFinder::EndOfRun()
     Int_t whereisx, wheretox;
     if(whichtype[1]==2)
     {
-	whereisx = 63;
-	wheretox = -1;
+        whereisx = 63;
+        wheretox = -1;
     }
     else if(whichtype[1]==3)
     {
-	whereisx = 70;
-	wheretox = 1;
+        whereisx = 70;
+        wheretox = 1;
     }
 
     while(1)
     {
-	if(num_chain==6 || whereisx==0 || whereisx==133) break;
-	else
-	{
-	    for(Int_t hit=0; hit<mmMul; hit++)
-	    {
-		chan = mmChan[hit];
-		dchan = 0;
-		if(           chan<11) dchan = chan;
-		else if(chan>11 && chan<22) dchan = chan - 1;
-		else if(chan>22 && chan<45) dchan = chan - 2;
-		else if(chan>45 && chan<56) dchan = chan - 3;
-		else if(chan>56           ) dchan = chan - 4;
+        if(num_chain==6 || whereisx==0 || whereisx==133) break;
+        else
+        {
+            for(Int_t hit=0; hit<mmMul; hit++)
+            {
+                chan = mmChan[hit];
+                dchan = 0;
+                if(           chan<11) dchan = chan;
+                else if(chan>11 && chan<22) dchan = chan - 1;
+                else if(chan>22 && chan<45) dchan = chan - 2;
+                else if(chan>45 && chan<56) dchan = chan - 3;
+                else if(chan>56           ) dchan = chan - 4;
 
-		if(mmpx[mmAsad[hit]][mmAget[hit]][dchan]==whereisx && !(mmChan[hit]==11 || mmChan[hit]==22 || mmChan[hit]==45 || mmChan[hit]==56))
-		{
-		    for(Int_t buck=0; buck<MaxBuck; buck++) HWaveFormbyPixel[num_chain] -> Fill(buck,mmWaveformY[hit][buck]);
-		    HWaveFormbyPixel[num_chain] -> SetTitle(Form("H%d_%d_%d_%d/%d/%d",mmCobo[hit],mmAsad[hit],mmAget[hit],dchan,mmpx[mmAsad[hit]][mmAget[hit]][dchan],evt));
-		    if(num_chain==0) loc_chain = mmpx[mmAsad[hit]][mmAget[hit]][dchan];
-		    num_chain++;
-		    continue;
-		}
-	    }
-	    whereisx = whereisx + wheretox;
-	    continue;
-	}
+                if(mmpx[mmAsad[hit]][mmAget[hit]][dchan]==whereisx && !(mmChan[hit]==11 || mmChan[hit]==22 || mmChan[hit]==45 || mmChan[hit]==56))
+                {
+                    for(Int_t buck=0; buck<MaxBuck; buck++) HWaveFormbyPixel[num_chain] -> Fill(buck,mmWaveformY[hit][buck]);
+                    HWaveFormbyPixel[num_chain] -> SetTitle(Form("H%d_%d_%d_%d/%d/%d",mmCobo[hit],mmAsad[hit],mmAget[hit],dchan,mmpx[mmAsad[hit]][mmAget[hit]][dchan],evt));
+                    if(num_chain==0) loc_chain = mmpx[mmAsad[hit]][mmAget[hit]][dchan];
+                    num_chain++;
+                    continue;
+                }
+            }
+            whereisx = whereisx + wheretox;
+            continue;
+        }
     }
     if(num_chain==0) return;
 
     TH1D *HWaveFormbyPixel_temp = new TH1D(Form("H_%dt",evt),Form("H_%dt",evt),512,0,512);
     for(Int_t j=0; j<num_chain; j++) //chain
     {
-	HWaveFormbyPixel_temp = (TH1D*) HWaveFormbyPixel[j] -> Clone();
-	for(Int_t i=0; i<6; i++) //timing
-	{
-	    if(strcmp(updown,"Up")==0) HWaveFormbyPixel_temp -> GetXaxis() -> SetRange(Timing[i]-BwT,Timing[i]);
-	    else if(strcmp(updown,"Down")==0) HWaveFormbyPixel_temp -> GetXaxis() -> SetRange(Timing[i],Timing[i]+BwT);
+        HWaveFormbyPixel_temp = (TH1D*) HWaveFormbyPixel[j] -> Clone();
+        for(Int_t i=0; i<6; i++) //timing
+        {
+            if(strcmp(updown,"Up")==0) HWaveFormbyPixel_temp -> GetXaxis() -> SetRange(Timing[i]-BwT,Timing[i]);
+            else if(strcmp(updown,"Down")==0) HWaveFormbyPixel_temp -> GetXaxis() -> SetRange(Timing[i],Timing[i]+BwT);
 
-	    ChainT[i] = ChainT[i] + HWaveFormbyPixel_temp -> GetMaximumBin();
-	    if(Timing[i]==0) ChainT[i] = 0;
-	}
-	HWaveFormbyPixel_temp->Reset();
+            ChainT[i] = ChainT[i] + HWaveFormbyPixel_temp -> GetMaximumBin();
+            if(Timing[i]==0) ChainT[i] = 0;
+        }
+        HWaveFormbyPixel_temp->Reset();
     }
     //cout << "where?" << endl;
     for(Int_t i=0; i<6; i++)
     {
-	ChainT[i] = ChainT[i]/num_chain;
-	if( ((strcmp(updown,"Up")==0&&(ChainT[i]-Timing[i])<0) || (strcmp(updown,"Down")==0&&(ChainT[i]-Timing[i])>0)) && TMath::Abs(ChainT[i]-Timing[i])<mintiming && Timing[i]!=0)
-	{
-	    mintiming = TMath::Abs(ChainT[i]-Timing[i]);
-	    BeamT = Timing[i];
-	    whereisbeam = i;
-	}
+        ChainT[i] = ChainT[i]/num_chain;
+        if( ((strcmp(updown,"Up")==0&&(ChainT[i]-Timing[i])<0) || (strcmp(updown,"Down")==0&&(ChainT[i]-Timing[i])>0)) && TMath::Abs(ChainT[i]-Timing[i])<mintiming && Timing[i]!=0)
+        {
+            mintiming = TMath::Abs(ChainT[i]-Timing[i]);
+            BeamT = Timing[i];
+            whereisbeam = i;
+        }
     }
     //cout << "where?" << endl;
-    cout << evt << ": " << Timing[whereisbeam]-ChainT[whereisbeam] << " at " << loc_chain << " BT" << endl;
+    lk_info << evt << ": " << Timing[whereisbeam]-ChainT[whereisbeam] << " at " << loc_chain << " BT" << endl;
     //cout << "where?" << endl;
 
     // ================================================== Draw Y vs Chain
@@ -459,63 +399,63 @@ bool ATTrackFinder::EndOfRun()
     num_chain = 0;
     if(whichtype[1]==2)
     {
-	whereisx = 63;
-	wheretox = -1;
+        whereisx = 63;
+        wheretox = -1;
     }
     else if(whichtype[1]==3)
     {
-	whereisx = 70;
-	wheretox = 1;
+        whereisx = 70;
+        wheretox = 1;
     }
 
     while(1)
     {
-	//if(num_chain==1 || whereisx==0 || whereisx==133) break;
-	if(whereisx==0 || whereisx==133) break;
-	else
-	{
-	    for(Int_t hit=0; hit<mmMul; hit++)
-	    {
-		chan = mmChan[hit];
-		dchan = 0;
-		if(           chan<11) dchan = chan;
-		else if(chan>11 && chan<22) dchan = chan - 1;
-		else if(chan>22 && chan<45) dchan = chan - 2;
-		else if(chan>45 && chan<56) dchan = chan - 3;
-		else if(chan>56           ) dchan = chan - 4;
+        //if(num_chain==1 || whereisx==0 || whereisx==133) break;
+        if(whereisx==0 || whereisx==133) break;
+        else
+        {
+            for(Int_t hit=0; hit<mmMul; hit++)
+            {
+                chan = mmChan[hit];
+                dchan = 0;
+                if(           chan<11) dchan = chan;
+                else if(chan>11 && chan<22) dchan = chan - 1;
+                else if(chan>22 && chan<45) dchan = chan - 2;
+                else if(chan>45 && chan<56) dchan = chan - 3;
+                else if(chan>56           ) dchan = chan - 4;
 
-		if(mmpx[mmAsad[hit]][mmAget[hit]][dchan]==whereisx && !(mmChan[hit]==11 || mmChan[hit]==22 || mmChan[hit]==45 || mmChan[hit]==56))
-		{
-		    for(Int_t buck=0; buck<MaxBuck; buck++) HWaveFormbyPixel[num_chain] -> Fill(buck,mmWaveformY[hit][buck]);
-		    loc_chain_all[num_chain] = mmpx[mmAsad[hit]][mmAget[hit]][dchan];
-		    num_chain++;
-		    continue;
-		}
-	    }
-	    whereisx = whereisx + wheretox;
-	    continue;
-	}
+                if(mmpx[mmAsad[hit]][mmAget[hit]][dchan]==whereisx && !(mmChan[hit]==11 || mmChan[hit]==22 || mmChan[hit]==45 || mmChan[hit]==56))
+                {
+                    for(Int_t buck=0; buck<MaxBuck; buck++) HWaveFormbyPixel[num_chain] -> Fill(buck,mmWaveformY[hit][buck]);
+                    loc_chain_all[num_chain] = mmpx[mmAsad[hit]][mmAget[hit]][dchan];
+                    num_chain++;
+                    continue;
+                }
+            }
+            whereisx = whereisx + wheretox;
+            continue;
+        }
     }
     if(num_chain==0) return;
 
     for(Int_t j=0; j<num_chain; j++) //chain
     {
-	HWaveFormbyPixel_temp = (TH1D*) HWaveFormbyPixel[j] -> Clone();
-	if(strcmp(updown,"Up")==0) HWaveFormbyPixel_temp -> GetXaxis() -> SetRange(BeamT-Bw,BeamT);
-	else if(strcmp(updown,"Down")==0) HWaveFormbyPixel_temp -> GetXaxis() -> SetRange(BeamT,BeamT+Bw);
+        HWaveFormbyPixel_temp = (TH1D*) HWaveFormbyPixel[j] -> Clone();
+        if(strcmp(updown,"Up")==0) HWaveFormbyPixel_temp -> GetXaxis() -> SetRange(BeamT-Bw,BeamT);
+        else if(strcmp(updown,"Down")==0) HWaveFormbyPixel_temp -> GetXaxis() -> SetRange(BeamT,BeamT+Bw);
 
-	ChainT_all[j] = HWaveFormbyPixel_temp -> GetMaximumBin();
-	if(BeamT==0) 
-	{
-	    ChainT_all[j] = 0;
-	}
-	HWaveFormbyPixel_temp->Reset();
+        ChainT_all[j] = HWaveFormbyPixel_temp -> GetMaximumBin();
+        if(BeamT==0) 
+        {
+            ChainT_all[j] = 0;
+        }
+        HWaveFormbyPixel_temp->Reset();
     }
     for(Int_t i=0; i<num_chain; i++)
     {
-	timing_dt_xy -> Fill(loc_chain_all[i],(BeamT-ChainT_all[i]));
-	track_px[BeamT-ChainT_all[i]+256] = loc_chain_all[i];
-	cout << evt << ": " << BeamT-ChainT_all[i] << " at " << loc_chain_all[i] << endl;
+        timing_dt_xy -> Fill(loc_chain_all[i],(BeamT-ChainT_all[i]));
+        track_px[BeamT-ChainT_all[i]+256] = loc_chain_all[i];
+        lk_info << evt << ": " << BeamT-ChainT_all[i] << " at " << loc_chain_all[i] << endl;
     }
     for(Int_t i=0; i<64; i++) HWaveFormbyPixel[i] -> Reset();
 
@@ -529,31 +469,31 @@ bool ATTrackFinder::EndOfRun()
     //}
     for(Int_t time=-150; time<150; time++)
     {
-	if((timing_dt_xy -> ProjectionY() -> GetBinContent(time+151))>3)
-	{
-	    for(Int_t i=0; i<num_chain; i++) if((BeamT-ChainT_all[i])==time) ChainT_all[i]=9999;
-	}
+        if((timing_dt_xy -> ProjectionY() -> GetBinContent(time+151))>3)
+        {
+            for(Int_t i=0; i<num_chain; i++) if((BeamT-ChainT_all[i])==time) ChainT_all[i]=9999;
+        }
     }
     timing_dt_xy -> Reset();
     for(Int_t i=0; i<num_chain; i++)
     {
-	if(ChainT_all[i]!=9999) timing_dt_xy -> Fill(loc_chain_all[i],(BeamT-ChainT_all[i]));
+        if(ChainT_all[i]!=9999) timing_dt_xy -> Fill(loc_chain_all[i],(BeamT-ChainT_all[i]));
     }
 
     Double_t rad_xt;
     TH2D* Hough_xt = new TH2D("Hough_xt","Hough_xt;theta;radius",1800,0,180,268,-134,134);
     for(Int_t i=0; i<num_chain; i++)
     {
-	if(ChainT_all[i]!=9999)
-	{
-	    for(theta=0; theta<180; theta+=0.1)
-	    {
-		costheta = TMath::Cos(theta*TMath::DegToRad());
-		sintheta = TMath::Sin(theta*TMath::DegToRad());
-		rad_xt = loc_chain_all[i]*costheta + (BeamT-ChainT_all[i])*sintheta;
-		Hough_xt -> Fill(theta, rad_xt);
-	    }
-	}
+        if(ChainT_all[i]!=9999)
+        {
+            for(theta=0; theta<180; theta+=0.1)
+            {
+                costheta = TMath::Cos(theta*TMath::DegToRad());
+                sintheta = TMath::Sin(theta*TMath::DegToRad());
+                rad_xt = loc_chain_all[i]*costheta + (BeamT-ChainT_all[i])*sintheta;
+                Hough_xt -> Fill(theta, rad_xt);
+            }
+        }
     }
     Double_t maxbinxt =-9999;
     Double_t thetaxt = 0;
@@ -561,17 +501,17 @@ bool ATTrackFinder::EndOfRun()
     Int_t numxt = 0;
     for(Int_t i=0; i<1800; i++)
     {
-	if((Hough_xt -> ProjectionY("pjy",i,i+1) -> GetMaximum())>=maxbinxt)
-	{
-	    //numxt++;
-	    maxbinxt = Hough_xt -> ProjectionY("pjy",i,i+1) -> GetMaximum();
-	    thetaxt =  Hough_xt -> GetXaxis() -> GetBinCenter(i);
-	    //thetaxt = (thetaxt*(numxt-1) + Hough_xt -> GetXaxis() -> GetBinCenter(i))/numxt;
-	    radxt =  Hough_xt -> GetYaxis() -> GetBinCenter(Hough_xt -> ProjectionY("pjy",i,i+1) -> GetMaximumBin());
-	    //radxt = (radxt*(numxt-1) + Hough_xt -> GetYaxis() -> GetBinCenter(Hough_xt -> ProjectionY("pjy",i,i+1) -> GetMaximumBin()))/numxt;
-	}
+        if((Hough_xt -> ProjectionY("pjy",i,i+1) -> GetMaximum())>=maxbinxt)
+        {
+            //numxt++;
+            maxbinxt = Hough_xt -> ProjectionY("pjy",i,i+1) -> GetMaximum();
+            thetaxt =  Hough_xt -> GetXaxis() -> GetBinCenter(i);
+            //thetaxt = (thetaxt*(numxt-1) + Hough_xt -> GetXaxis() -> GetBinCenter(i))/numxt;
+            radxt =  Hough_xt -> GetYaxis() -> GetBinCenter(Hough_xt -> ProjectionY("pjy",i,i+1) -> GetMaximumBin());
+            //radxt = (radxt*(numxt-1) + Hough_xt -> GetYaxis() -> GetBinCenter(Hough_xt -> ProjectionY("pjy",i,i+1) -> GetMaximumBin()))/numxt;
+        }
     }
-    cout << thetaxt << " " << radxt << endl;
+    lk_info << thetaxt << " " << radxt << endl;
     Double_t tanxt = TMath::Tan(thetaxt*TMath::DegToRad());
     Double_t sinxt = TMath::Sin(thetaxt*TMath::DegToRad());
     Double_t cosxt = TMath::Cos(thetaxt*TMath::DegToRad());
@@ -579,7 +519,7 @@ bool ATTrackFinder::EndOfRun()
     for(Double_t i=-150; i<150; i+=0.1) if(-i*tanxt+radxt*(cosxt+sinxt*tanxt)>0 && -i*tanxt+radxt*(cosxt+sinxt*tanxt)<134) fhough_xt -> Fill(-i*tanxt+radxt*(cosxt+sinxt*tanxt),i);
     for(Int_t i=0; i<num_chain; i++)
     {
-	fhough_xt -> Fill(loc_chain_all[i],(BeamT-ChainT_all[i]),100);
+        fhough_xt -> Fill(loc_chain_all[i],(BeamT-ChainT_all[i]),100);
     }
     // ================================================== Draw Y vs Chain
 
@@ -593,51 +533,51 @@ bool ATTrackFinder::EndOfRun()
 
     while(1)
     {
-	//if(num_strip==1 || whereisx==0 || whereisx==133) break;
-	if(whereisz==128) break; //should be changed depend on L/R since R is soooo noisy
-	else
-	{
-	    for(Int_t hit=0; hit<mmMul; hit++)
-	    {
-		chan = mmChan[hit];
-		dchan = 0;
-		if(           chan<11) dchan = chan;
-		else if(chan>11 && chan<22) dchan = chan - 1;
-		else if(chan>22 && chan<45) dchan = chan - 2;
-		else if(chan>45 && chan<56) dchan = chan - 3;
-		else if(chan>56           ) dchan = chan - 4;
+        //if(num_strip==1 || whereisx==0 || whereisx==133) break;
+        if(whereisz==128) break; //should be changed depend on L/R since R is soooo noisy
+        else
+        {
+            for(Int_t hit=0; hit<mmMul; hit++)
+            {
+                chan = mmChan[hit];
+                dchan = 0;
+                if(           chan<11) dchan = chan;
+                else if(chan>11 && chan<22) dchan = chan - 1;
+                else if(chan>22 && chan<45) dchan = chan - 2;
+                else if(chan>45 && chan<56) dchan = chan - 3;
+                else if(chan>56           ) dchan = chan - 4;
 
-		if(mmpx[mmAsad[hit]][mmAget[hit]][dchan]==-1 && mmpy[mmAsad[hit]][mmAget[hit]][dchan]==whereisz 
-		   && mmAsad[hit]==whichtype[1] && !(mmChan[hit]==11 || mmChan[hit]==22 || mmChan[hit]==45 || mmChan[hit]==56))
-		{
-		    HWaveFormbyPixel[num_strip] -> Reset();
-		    for(Int_t buck=0; buck<MaxBuck; buck++) HWaveFormbyPixel[num_strip] -> Fill(buck,mmWaveformY[hit][buck]);
-		    loc_strip_all[num_strip] = mmpy[mmAsad[hit]][mmAget[hit]][dchan];
-		    num_strip++;
-		    continue;
-		}
-	    }
-	    whereisz = whereisz + wheretoz;
-	    continue;
-	}
+                if(mmpx[mmAsad[hit]][mmAget[hit]][dchan]==-1 && mmpy[mmAsad[hit]][mmAget[hit]][dchan]==whereisz 
+                        && mmAsad[hit]==whichtype[1] && !(mmChan[hit]==11 || mmChan[hit]==22 || mmChan[hit]==45 || mmChan[hit]==56))
+                {
+                    HWaveFormbyPixel[num_strip] -> Reset();
+                    for(Int_t buck=0; buck<MaxBuck; buck++) HWaveFormbyPixel[num_strip] -> Fill(buck,mmWaveformY[hit][buck]);
+                    loc_strip_all[num_strip] = mmpy[mmAsad[hit]][mmAget[hit]][dchan];
+                    num_strip++;
+                    continue;
+                }
+            }
+            whereisz = whereisz + wheretoz;
+            continue;
+        }
     }
     if(num_strip==0) return;
 
     for(Int_t j=0; j<num_strip; j++) //strip
     {
-	HWaveFormbyPixel_temp = (TH1D*) HWaveFormbyPixel[j] -> Clone();
-	if(strcmp(updown,"Up")==0) HWaveFormbyPixel_temp -> GetXaxis() -> SetRange(BeamT-Bw,BeamT);
-	else if(strcmp(updown,"Down")==0) HWaveFormbyPixel_temp -> GetXaxis() -> SetRange(BeamT,BeamT+Bw);
+        HWaveFormbyPixel_temp = (TH1D*) HWaveFormbyPixel[j] -> Clone();
+        if(strcmp(updown,"Up")==0) HWaveFormbyPixel_temp -> GetXaxis() -> SetRange(BeamT-Bw,BeamT);
+        else if(strcmp(updown,"Down")==0) HWaveFormbyPixel_temp -> GetXaxis() -> SetRange(BeamT,BeamT+Bw);
 
-	StripT_all[j] = HWaveFormbyPixel_temp -> GetMaximumBin();
-	if(BeamT==0) StripT_all[j] = 0;
-	HWaveFormbyPixel_temp->Reset();
+        StripT_all[j] = HWaveFormbyPixel_temp -> GetMaximumBin();
+        if(BeamT==0) StripT_all[j] = 0;
+        HWaveFormbyPixel_temp->Reset();
     }
     for(Int_t i=0; i<num_strip; i++)
     {
-	timing_dt_zy -> Fill(loc_strip_all[i],(BeamT-StripT_all[i]));
-	track_py[BeamT-StripT_all[i]+256] = loc_strip_all[i];
-	cout << evt << ": " << BeamT-StripT_all[i] << " at " << loc_strip_all[i] << endl;
+        timing_dt_zy -> Fill(loc_strip_all[i],(BeamT-StripT_all[i]));
+        track_py[BeamT-StripT_all[i]+256] = loc_strip_all[i];
+        lk_info << evt << ": " << BeamT-StripT_all[i] << " at " << loc_strip_all[i] << endl;
     }
 
     //modify timing_dt_zy
@@ -650,31 +590,31 @@ bool ATTrackFinder::EndOfRun()
     //}
     for(Int_t time=-150; time<150; time++)
     {
-	if((timing_dt_zy -> ProjectionY() -> GetBinContent(time+151))>3)
-	{
-	    for(Int_t i=0; i<num_strip; i++) if((BeamT-StripT_all[i])==time) StripT_all[i]=9999;
-	}
+        if((timing_dt_zy -> ProjectionY() -> GetBinContent(time+151))>3)
+        {
+            for(Int_t i=0; i<num_strip; i++) if((BeamT-StripT_all[i])==time) StripT_all[i]=9999;
+        }
     }
     timing_dt_zy -> Reset();
     for(Int_t i=0; i<num_strip; i++)
     {
-	if(StripT_all[i]!=9999) timing_dt_zy -> Fill(loc_strip_all[i],(BeamT-StripT_all[i]));
+        if(StripT_all[i]!=9999) timing_dt_zy -> Fill(loc_strip_all[i],(BeamT-StripT_all[i]));
     }
 
     Double_t rad_zt;
     TH2D* Hough_zt = new TH2D("Hough_zt","Hough_zt;theta;radius",1800,0,180,256,-128,128);
     for(Int_t i=0; i<num_strip; i++)
     {
-	if(StripT_all[i]!=9999)
-	{
-	    for(theta=0; theta<180; theta+=0.1)
-	    {
-		costheta = TMath::Cos(theta*TMath::DegToRad());
-		sintheta = TMath::Sin(theta*TMath::DegToRad());
-		rad_zt = loc_strip_all[i]*costheta + (BeamT-StripT_all[i])*sintheta;
-		Hough_zt -> Fill(theta, rad_zt);
-	    }
-	}
+        if(StripT_all[i]!=9999)
+        {
+            for(theta=0; theta<180; theta+=0.1)
+            {
+                costheta = TMath::Cos(theta*TMath::DegToRad());
+                sintheta = TMath::Sin(theta*TMath::DegToRad());
+                rad_zt = loc_strip_all[i]*costheta + (BeamT-StripT_all[i])*sintheta;
+                Hough_zt -> Fill(theta, rad_zt);
+            }
+        }
     }
     Double_t maxbinzt =-9999;
     Double_t thetazt = 0;
@@ -682,17 +622,17 @@ bool ATTrackFinder::EndOfRun()
     Int_t numzt = 0;
     for(Int_t i=0; i<1800; i++)
     {
-	if((Hough_zt -> ProjectionY("pjy",i,i+1) -> GetMaximum())>=maxbinzt)
-	{
-	    //numzt++;
-	    maxbinzt = Hough_zt -> ProjectionY("pjy",i,i+1) -> GetMaximum();
-	    thetazt =  Hough_zt -> GetXaxis() -> GetBinCenter(i);
-	    //thetazt = (thetazt*(numzt-1) + Hough_zt -> GetXaxis() -> GetBinCenter(i))/numzt;
-	    radzt =  Hough_zt -> GetYaxis() -> GetBinCenter(Hough_zt -> ProjectionY("pjy",i,i+1) -> GetMaximumBin());
-	    //radzt = (radzt*(numzt-1) + Hough_zt -> GetYaxis() -> GetBinCenter(Hough_zt -> ProjectionY("pjy",i,i+1) -> GetMaximumBin()))/numzt;
-	}
+        if((Hough_zt -> ProjectionY("pjy",i,i+1) -> GetMaximum())>=maxbinzt)
+        {
+            //numzt++;
+            maxbinzt = Hough_zt -> ProjectionY("pjy",i,i+1) -> GetMaximum();
+            thetazt =  Hough_zt -> GetXaxis() -> GetBinCenter(i);
+            //thetazt = (thetazt*(numzt-1) + Hough_zt -> GetXaxis() -> GetBinCenter(i))/numzt;
+            radzt =  Hough_zt -> GetYaxis() -> GetBinCenter(Hough_zt -> ProjectionY("pjy",i,i+1) -> GetMaximumBin());
+            //radzt = (radzt*(numzt-1) + Hough_zt -> GetYaxis() -> GetBinCenter(Hough_zt -> ProjectionY("pjy",i,i+1) -> GetMaximumBin()))/numzt;
+        }
     }
-    cout << thetazt << " " << radzt << endl;
+    lk_info << thetazt << " " << radzt << endl;
     Double_t tanzt = TMath::Tan(thetazt*TMath::DegToRad());
     Double_t sinzt = TMath::Sin(thetazt*TMath::DegToRad());
     Double_t coszt = TMath::Cos(thetazt*TMath::DegToRad());
@@ -703,19 +643,19 @@ bool ATTrackFinder::EndOfRun()
     for(Double_t i=-150; i<150; i+=0.1) if(-i*tanzt+radzt*(coszt+sinzt*tanzt)>0 && -i*tanzt+radzt*(coszt+sinzt*tanzt)<128) fhough_zt -> Fill(-i*tanzt+radzt*(coszt+sinzt*tanzt),i);
     for(Int_t i=0; i<num_strip; i++)
     {
-	fhough_zt -> Fill(loc_strip_all[i],(BeamT-StripT_all[i]),100);
+        fhough_zt -> Fill(loc_strip_all[i],(BeamT-StripT_all[i]),100);
     }
     // ================================================== Draw Y vs Strip
 
     for(Int_t i=0; i<512; i++)
     {
-	if(track_px[i]<9999)
-	{
-	    for(Int_t j=-1; j<1; j++)
-	    {
-		if(track_py[i+j]<9999) timing_dt_xz -> Fill(track_px[i],track_py[i+j]);
-	    }
-	}
+        if(track_px[i]<9999)
+        {
+            for(Int_t j=-1; j<1; j++)
+            {
+                if(track_py[i+j]<9999) timing_dt_xz -> Fill(track_px[i],track_py[i+j]);
+            }
+        }
     }
 
     for(Int_t i=0; i<6; i++) LCWaveFormbyPixel[i] -> Delete(); 
@@ -730,6 +670,7 @@ bool ATTrackFinder::EndOfRun()
     TH2D* fhough_xz_check = new TH2D("fhough_xz_check","fhough_xz_check;mmpx;mmpy",134,0,134,128,0,128);
     for(Double_t i=0; i<134; i+=0.1) fhough_xz_check -> Fill(i,i*(tanzt/tanxt)-radxt*(tanzt*cosxt/tanxt+tanzt*sinxt)+radzt*(coszt+sinzt*tanzt));
 
+    /*
     TCanvas* cvs_dt = new TCanvas("cvs_dt","cvs_dt",1800,1500);
     cvs_dt -> Divide(3,3);
     cvs_dt -> cd(1);
@@ -753,5 +694,6 @@ bool ATTrackFinder::EndOfRun()
     cvs_dt -> cd(9);
     fhough_xz_check -> Draw("colz"); 
     cvs_dt -> SaveAs(Form("./drawing/evt%d_track.jpg",evt));
+    */
     return true;
 }

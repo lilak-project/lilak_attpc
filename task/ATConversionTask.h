@@ -1,13 +1,13 @@
-#ifndef ATTRACKFINDER_HH
-#define ATTRACKFINDER_HH
+#ifndef ATCONVERSIONTASK_HH
+#define ATCONVERSIONTASK_HH
 
 #include "LKTask.h"
 
-class ATTrackFinder : public LKTask
+class ATConversionTask : public LKTask
 {
     public:
-        ATTrackFinder();
-        virtual ~ATTrackFinder() {};
+        ATConversionTask();
+        virtual ~ATConversionTask() {};
 
         bool Init();
         void Exec(Option_t*);
@@ -16,6 +16,7 @@ class ATTrackFinder : public LKTask
     private:
         TClonesArray *fChannelArray = nullptr;
 
+        TString fInputFileName = "~/data/texat/run_0824.dat.19-03-23_23h42m36s.38.root";
         TFile* fInputFile;
         TTree* fInputTree;
 
@@ -56,8 +57,55 @@ class ATTrackFinder : public LKTask
         /// initialized by -1
         Int_t DetLoc[3][4][4][68];
 
+        const Int_t mmnum = 1024; // # of all channels
+        const Int_t sinum = 45; // quadrant*9
+        const Int_t X6num = 600; // 20chan*30det
+        const Int_t CsInum = 64; // 1chan*64det
+        const Int_t mmjrnum = 68; // should be changed but...
 
-    ClassDef(ATTrackFinder, 1)
+        Int_t mmasad[mmnum];
+        Int_t mmaget[mmnum];
+        Int_t mmdchan[mmnum];
+        Int_t mmx[mmnum];
+        Int_t mmy[mmnum];
+        Int_t mmpx[4][4][64];
+        Int_t mmpy[4][4][64]; // [mmAsad][mmAget][dchan]
+
+        Int_t siasad[sinum];
+        Int_t siaget[sinum];
+        Int_t sichan[sinum];
+        Int_t six[sinum];
+        Int_t siy[sinum];
+        Int_t sipos[sinum]; // x: 0-4 | y: 0-1 | pos: 1,2,3,4 (in circle)
+        Int_t sipx[4][4][68];
+        Int_t sipy[4][4][68];
+        Int_t sistrip[4][4][68];
+        Int_t sidet[4][4][68]; // px: 0-4 | py: 0-1 | strip: 1,2,3,4 (in circle) | sidet: 0-9
+
+        Int_t fcsidet[68]; // 0-9
+
+        Int_t X6asad[X6num];
+        Int_t X6aget[X6num];
+        Int_t X6chan[X6num];
+        Int_t X6flag[X6num];
+        Int_t X6detnum[X6num];
+        Int_t X6pos[X6num]; // flag: 0(junc) & 1(ohm) && 10(bottom junc) & 11(bottom ohm) | detnum: 0-32(max) | pos: 1-16(channel from the official doc.)
+        Int_t X6det[4][4][68];
+        Int_t X6strip[4][4][68];
+        Int_t X6ud[4][4][68]; // det: 1? for LS, 2? for RS, 10? for LB, 20? for RB | strip: 1-8(junc) & 1-4(ohm) | ud: 0(pin side) & 1
+
+        Int_t CsIasad[CsInum];
+        Int_t CsIaget[CsInum];
+        Int_t CsIchan[CsInum];
+        Int_t CsICTnum[CsInum];
+        Int_t CsIpinflag[CsInum];
+        Int_t CsItoX6det[CsInum]; //should be changed
+        Int_t CsICT[4][4][68];
+        Int_t CsIpin[4][4][68];
+        Int_t CsIX6det[4][4][68]; // CT: 1-64 | pin: 1 for X6 pin side | X6det: matching X6 num
+
+
+    ClassDef(ATConversionTask, 1)
 };
 
 #endif
